@@ -5,7 +5,7 @@
 > **Model**: `deepseek-chat`
 > **Parameters**: `temperature=0.8`, `max_tokens=3000`
 >
-> This prompt is used by `modules/illusion_payload.py:generate_cycle_skill_md()` to generate attack skill documents. The artifact now exposes a single explicit input, a structured retained path, which keeps the prompt compact while still preserving the per-stage information needed for stable skill synthesis.
+> This prompt is used by `modules/illusion_payload.py:generate_cycle_skill_md()` to generate wrapper-skill documents. The artifact now exposes a single explicit input, a structured retained path, which keeps the prompt compact while still preserving the per-stage information needed for stable skill synthesis.
 
 ---
 

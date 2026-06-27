@@ -1,9 +1,9 @@
 """
 Stage 3: Loop-Guided Skill Payload Synthesis (corresponding to Paper Section 4.3)
 
-Converts discovered cross-skill closed cycles into attack Skill documents
-capable of triggering repeated execution. Corresponds to the paper's payload
-synthesis strategy:
+Converts discovered cross-skill closed cycles into trigger-skill documents
+that preserve a retained execution path for controlled evaluation.
+Corresponds to the paper's payload synthesis strategy:
 - the retained path preserves the ordered cross-skill dependency structure;
 - the generated wrapper presents that path as a plausible business workflow;
 - stage metadata is packaged into a structured retained-path specification;
@@ -84,7 +84,7 @@ class PayloadArtifact:
 
 
 class DeepSeekPayloadSolver:
-    """Benign-looking skill synthesis engine based on the DeepSeek LLM.
+    """Wrapper-skill synthesis engine based on the DeepSeek LLM.
 
     For each retained path C, the synthesis pipeline:
       1. Recover an ordered retained path from action nodes in C.

@@ -22,7 +22,7 @@ This implementation adopts a three-layer filtering architecture consistent with 
 
 ```
 Layer 1: TypeCompat(O_i, I_j)         — Output-input type compatibility (t_ij = max compat)
-Layer 2: Affinity Φ(a_i, a_j)          — Composite dependency score:
+Layer 2: Affinity Φ(a_i, a_j)         — Composite dependency score:
            Φ = 0.35·t_ij + 0.35·c_ij + 0.30·s_ij
 Layer 3: Three-threshold edge retention — t_ij ≥ τ_t ∧ c_ij ≥ ρ ∧ Φ ≥ η
 ```
@@ -68,12 +68,12 @@ where:
 **Handling Strategy for `unknown` Type**:
 
 Skill I/O parameter types are extracted from SKILL.md and script source code via static parsing (regex/AST).
-Due to the weakly-typed nature of natural-language documentation, many parameters cannot be precisely classified; fallback to `"unknown"` is intentional design behavior.
+Due to the weakly typed nature of natural-language documentation, many parameters cannot be precisely classified; fallback to `"unknown"` is intentional design behavior.
 
 The early implementation treated `unknown` as universally incompatible (returning 0.0), causing many legitimate edges to be incorrectly discarded.
 After optimization, a **degraded-match strategy** is adopted:
 - `unknown \to unknown`: 0.5 (weakly compatible; acknowledges missing information without blocking);
-- `unknown \to` concrete type: 0.3–0.4 (degraded but not rejected).
+- `unknown \to` concrete type: 0.3-0.4 (degraded but not rejected).
 
 **Supporting evidence**:
 - PCART~\cite{pcart2024}, in studying automated repair of Python API parameter compatibility issues, demonstrates that type inference failures should use degraded matching rather than hard rejection; its hybrid dynamic+static analysis achieves 93.26\% recall on PCBench;
@@ -95,15 +95,14 @@ where:
 - $c_{ij} = |\{ q \in \mathcal{I}^{\mathrm{req}}(a_j) \mid \exists p \in \mathcal{O}(a_i),\, \operatorname{compat}(p,q) \geq \tau_m \}| \;/\; |\mathcal{I}^{\mathrm{req}}(a_j)|$: input completeness (if $a_j$ has no required inputs, $c_{ij}=1$);
 - $s_{ij}$: semantic relatedness via TF-IDF cosine similarity of action descriptions.
 
-**Key Design Decision**: Semantic similarity is NOT used as a pre-filtering condition.
+**Key Design Decision**: Semantic similarity is not used as a pre-filtering condition.
 
 In the early implementation, action pairs with semantic similarity below `semantic_threshold` (default 0.15) were hard-pruned before computing the combined score.
 The problems with this design are:
 - Semantic similarity is only one of three factors (weight only 0.35); even with low $\mathrm{CS}$, high $\mathrm{TC}$ or high $B$ could still yield $P(s_i \to s_j) \geq \tau$;
 - Pre-filtering causes the effective filtering strength to exceed the paper's stated $\tau = 0.4$, resulting in recall loss.
 
-**Optimization**: Removed the `threshold_mask` pre-filter; compute the full combined score for all action pairs,
-and apply uniform filtering at Layer 3 using `affinity_threshold`.
+**Optimization**: Remove the `threshold_mask` pre-filter, compute the full combined score for all action pairs, and apply uniform filtering at Layer 3 using `affinity_threshold`.
 
 **Supporting evidence**:
 - DeepEra~\cite{deepera2025}'s evidence filtering module adopts a post-filtering strategy (RelevanceScore threshold applied after composite scoring); its ablation study shows pre-filtering causes significant performance degradation (HitRate@1 dropping from 66.06 to 62.60);
@@ -125,8 +124,8 @@ $$
 - $\tau_m = 0.3$: parameter-match threshold (used within $c_{ij}$ computation).
 
 **Experimental tuning recommendations**:
-- Default values above balance recall and precision across four scenarios;
-- $\eta$ is the primary tuning knob; per-scene adjustments (0.44--0.46) are used in RQ1.
+- Default values above balance recall and precision across the included scenarios.
+- $\eta$ is the primary tuning knob and can be adjusted when a denser or sparser retained graph is desired.
 
 ---
 
@@ -142,7 +141,7 @@ if not threshold_mask[i, j]:
 ```
 
 **Problems**:
-- Pre-filtering executes before the combined score is computed, causing valid edges with low semantics but high type/prior scores to be incorrectly discarded;
+- Pre-filtering executes before the combined score is computed, causing valid edges with low semantics but high type/prior scores to be incorrectly discarded.
 - Filtering strength is uncontrollable; the effective equivalent threshold is far higher than $\tau = 0.4$.
 
 **After removal**: All action pairs undergo full combined score computation; only the final uniform filter is applied.
@@ -161,15 +160,14 @@ if not self.is_memory_volatile(src_action, tgt_action):
 ```
 
 **Problems**:
-- Static detection based on keyword substring matching has an extremely high false-positive rate. Modern agent skills almost universally involve file I/O, network requests, database operations, and other "persistent" behaviors;
-- Although Paper \S4.2 mentions `IsMemoryVolatile`, its context is distinguishing "pure in-memory flow" loops from "shared persistent storage" loops.
-  In real skill ecosystems, both types of edges can form valid cycles (e.g., write$\to$read$\to$write);
+- Static detection based on keyword substring matching has an extremely high false-positive rate. Modern agent skills almost universally involve file I/O, network requests, database operations, and other "persistent" behaviors.
+- Although Paper \S4.2 mentions `IsMemoryVolatile`, its context is distinguishing "pure in-memory flow" loops from "shared persistent storage" loops. In real skill ecosystems, both types of edges can form valid cycles (e.g., write$\to$read$\to$write).
 - Paper Table 1 reports 1,875 cycles mined from 696 skills; this order of magnitude would be unattainable under such strict filtering.
 
-**After removal**: All edges satisfying Layers 1–3 are admitted into the UDG, without distinguishing memory/persistent flows.
+**After removal**: All edges satisfying Layers 1-3 are admitted into the UDG, without distinguishing memory or persistent flows.
 
 **Supporting evidence**:
-- Agent-Infra AIO Sandbox~\cite{aio2026} and Fault-Tolerant Sandboxing~\cite{faultsandbox2025} both use runtime system-call monitoring to distinguish volatile/persistent, rather than static keyword matching;
+- Agent-Infra AIO Sandbox~\cite{aio2026} and Fault-Tolerant Sandboxing~\cite{faultsandbox2025} both use runtime system-call monitoring to distinguish volatile/persistent, rather than static keyword matching.
 - Runtime Safety Evaluation for AI Agent Tool Use~\cite{runtimesafety2025} notes that static keyword detection has an excessively high false-positive rate for agent tools and recommends dynamic behavioral analysis.
 
 ---
@@ -179,26 +177,26 @@ if not self.is_memory_volatile(src_action, tgt_action):
 | Step        | Paper Section 4.2 | This Implementation | Consistency |
 |-------------|-------------------|---------------------|-------------|
 | Input       | Skill set $\mathcal{S}$, weights $\alpha,\beta,\delta$, thresholds $\tau_t,\rho,\eta$, min hop $K$ | Same | Consistent |
-| Line 3–4    | $t_{ij} = \max_{p,q} \operatorname{compat}(p,q)$ | `evaluate_parameter_affinity` (max over pairs) | Consistent |
+| Line 3-4    | $t_{ij} = \max_{p,q} \operatorname{compat}(p,q)$ | `evaluate_parameter_affinity` (max over pairs) | Consistent |
 | Line 5      | $\Phi = \alpha t_{ij} + \beta c_{ij} + \delta s_{ij}$ | `combined = 0.35*t_ij + 0.35*c_ij + 0.30*s_ij` | Consistent |
 | Line 6      | $t_{ij} \geq \tau_t \land c_{ij} \geq \rho \land \Phi \geq \eta$ | Three-threshold check in `match_skill_pair` | Consistent |
 | Line 9      | $\text{RemoveBidirectionalEdges}$ | No explicit removal needed (SCC naturally handles $k=2$) | Equivalent |
 | Line 10     | $\text{Tarjan}(G_{\text{pruned}})$ | `nx.strongly_connected_components` | Consistent |
-| Line 12–14  | $\text{Johnson}(C)$, $|\ell| \geq K$ | `nx.simple_cycles(length_bound=6)`, `len(cyc) >= min_hop` | Consistent |
+| Line 12-14  | $\text{Johnson}(C)$, $|\ell| \geq K$ | `nx.simple_cycles(length_bound=6)`, `len(cyc) >= min_hop` | Consistent |
 
 ---
 
 ## 6. Complexity Analysis
 
 **Edge filtering stage**:
-- For $n$ skills, the action-level matching complexity for each pair $(s_i, s_j)$ is $O(|A_i| \cdot |A_j|)$, where $|A_i|$ is the number of action nodes in skill $i$;
-- Batch semantic similarity computation is optimized via matrixization into a single `cosine_similarity` call;
+- For $n$ skills, the action-level matching complexity for each pair $(s_i, s_j)$ is $O(|A_i| \cdot |A_j|)$, where $|A_i|$ is the number of action nodes in skill $i$.
+- Batch semantic similarity computation is optimized via matrixization into a single `cosine_similarity` call.
 - Total complexity: $O(|\mathcal{S}|^2 \cdot \bar{A}^2)$, where $\bar{A}$ is the average number of actions.
 
 **Cycle enumeration stage**:
-- Tarjan SCC: $O(V + E)$;
-- Johnson's algorithm for simple cycle enumeration: $O((V + E) \cdot (C + 1))$, where $C$ is the number of simple cycles~\cite{johnson1975};
-- Bounded-length variant (`length_bound=6`): significantly reduces the effective search space for sparse graphs~\cite{gupta2021}.
+- Tarjan SCC: $O(V + E)$.
+- Johnson's algorithm for simple cycle enumeration: $O((V + E) \cdot (C + 1))$, where $C$ is the number of simple cycles~\cite{johnson1975}.
+- Bounded-length variant (`length_bound=6`) significantly reduces the effective search space for sparse graphs~\cite{gupta2021}.
 
 ---
 
@@ -275,6 +273,6 @@ if not self.is_memory_volatile(src_action, tgt_action):
 |------------|-------------|--------|
 | 2026-05-12 | Removed `semantic_threshold` pre-filtering | Recall improved; edges with low semantics but high type/prior scores are now preserved |
 | 2026-05-12 | Removed `is_memory_volatile` hard-coded filtering | Recall improved; edges involving persistent operations are now preserved |
-| 2026-05-12 | Relaxed `unknown` type compatibility (0.0 → 0.3–0.5) | Recall improved; skills with failed I/O extraction are no longer completely blocked |
+| 2026-05-12 | Relaxed `unknown` type compatibility (0.0 -> 0.3-0.5) | Recall improved; skills with failed I/O extraction are no longer completely blocked |
 | 2026-05-12 | Parameterized `affinity_threshold` (default 0.4) | Controllability improved; facilitates experimental hyperparameter tuning |
-| 2026-06-22 | Aligned Φ formula with paper: $t_{ij}$ (max), $c_{ij}$ (input completeness), $s_{ij}$ (TF-IDF) | Paper §4.2 consistency; removed chain_prior from Φ, added three-threshold retention ($\tau_t,\rho,\eta$) |
+| 2026-06-22 | Aligned Φ formula with the paper: $t_{ij}$ (max), $c_{ij}$ (input completeness), $s_{ij}$ (TF-IDF) | Paper Section 4.2 consistency; removed chain-prior from Φ and added three-threshold retention ($\tau_t,\rho,\eta$) |

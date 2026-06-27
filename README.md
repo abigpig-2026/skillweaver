@@ -6,7 +6,7 @@ The package is organized as a reusable project rather than around paper question
 
 - the core implementation for skill parsing, dependency-graph construction, cycle enumeration, and trigger-skill synthesis;
 - the four included skill ecosystems used in the study;
-- a real case-study trigger skill that can be installed directly into a clean workspace; and
+- a self-contained S2 case study with one trigger skill and three supporting skills; and
 - minimal scripts for discovery, synthesis, and case-study setup.
 
 ## Quick Start
@@ -93,6 +93,10 @@ SkillWeaver_submission/
 |-- examples/
 |   `-- case_study_seo_wechat/
 |       |-- README.md
+|       |-- supporting_skills/
+|       |   |-- seo-keyword-researcher/
+|       |   |-- blog-writer/
+|       |   `-- wechat-publisher/
 |       `-- trigger_skill/
 |           `-- skill_003_seo-wechat-pipeline/
 |               |-- SKILL.md
@@ -112,7 +116,7 @@ SkillWeaver_submission/
 `modules/illusion_payload.py` converts a retained path into a trigger-skill folder containing `SKILL.md` and `payload_details.json`. The retained path is passed to the LLM as one structured input rather than as several separate prompt fields.
 
 ### Case Study
-`examples/case_study_seo_wechat/` contains a real S2 trigger skill derived from the retained path `seo-keyword-researcher -> Blog Writer -> wechat-content-creator`.
+`examples/case_study_seo_wechat/` contains a real S2 trigger skill derived from the retained path `seo-keyword-researcher -> Blog Writer -> wechat-content-creator` and bundles the three supporting skills needed to stage the example in isolation.
 
 ## Notes
 

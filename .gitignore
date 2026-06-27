@@ -20,9 +20,21 @@ env/
 # Environment variables (contains API keys)
 .env
 
-# Output data (generated results)
+# Generated outputs
 output/
-*.json
+
+# Dataset metadata and auxiliary resources not needed for submission review
+datasets/**/_meta.json
+datasets/**/meta.json
+datasets/**/claw.json
+datasets/**/clawhub.json
+datasets/**/mcp.json
+datasets/**/package.json
+datasets/**/package-lock.json
+datasets/**/assets/
+datasets/**/evals/
+datasets/**/doc/doc_format/templates/
+datasets/**/references/example-agent-config.json
 
 # OS
 .DS_Store

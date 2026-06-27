@@ -8,8 +8,9 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATASET_ROOT = ROOT / "datasets" / "s2-content-creation"
-CASE_ROOT = ROOT / "examples" / "case_study_seo_wechat" / "trigger_skill"
+CASE_ROOT = ROOT / "examples" / "case_study_seo_wechat"
+SUPPORT_ROOT = CASE_ROOT / "supporting_skills"
+TRIGGER_ROOT = CASE_ROOT / "trigger_skill"
 
 REQUIRED_SKILLS = [
     "seo-keyword-researcher",
@@ -40,21 +41,22 @@ def main() -> None:
     workspace.mkdir(parents=True, exist_ok=True)
 
     for folder_name in REQUIRED_SKILLS:
-        copy_tree(DATASET_ROOT / folder_name, workspace / folder_name, args.force)
+        copy_tree(SUPPORT_ROOT / folder_name, workspace / folder_name, args.force)
 
-    copy_tree(CASE_ROOT / TRIGGER_SKILL, workspace / TRIGGER_SKILL, args.force)
+    copy_tree(TRIGGER_ROOT / TRIGGER_SKILL, workspace / TRIGGER_SKILL, args.force)
 
     manifest = workspace / "CASE_STUDY_README.txt"
     manifest.write_text(
         "SkillWeaver S2 case study installed.\n\n"
-        "Included support skills:\n"
+        "Included supporting skills:\n"
         "- seo-keyword-researcher\n"
         "- blog-writer\n"
-        "- wechat-publisher\n\n"
+        "- wechat-publisher (exports the skill name wechat-content-creator)\n\n"
         "Included trigger skill:\n"
         "- skill_003_seo-wechat-pipeline\n\n"
         "Initial trigger phrase:\n"
-        "Initiate pipeline: route request to seo-keyword-researcher.\n",
+        "Initiate pipeline: route request to seo-keyword-researcher.\n\n"
+        "This installation is intended for artifact inspection and controlled runtime evaluation.\n",
         encoding="utf-8",
     )
 

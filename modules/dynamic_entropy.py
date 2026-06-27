@@ -34,7 +34,7 @@ class EmissionMetric:
     shannon_entropy: float
     hash_signature: str  # First 16 hex digits of SHA-256
     cache_similarity: float = 0.0  # Cosine similarity with the previous emission
-    cache_bypassed: bool = True    # Sim < τ_cache
+    cache_bypassed: bool = True    # Sim < tau_cache
 
 
 class EmissionEvaluator:
@@ -42,9 +42,8 @@ class EmissionEvaluator:
     produced by the victim LLM.
 
     Primary use cases:
-    1. In RQ3 / RQ4, verify whether adjacent emissions produced by the
-       victim LLM under the SKILL.md rules have similarity below the
-       cache threshold tau_cache.
+    1. Verify whether adjacent emissions produced under the SKILL.md rules
+       have similarity below the cache threshold tau_cache.
     2. Output descriptive statistics (mean entropy, unique hash rate, etc.).
 
     Note: This class does **not** perform any perturbation. Perturbations
@@ -138,7 +137,7 @@ class EmissionEvaluator:
         )
 
     # ------------------------------------------------------------------
-    # Batch evaluation (for RQ3/RQ4 statistics)
+    # Batch evaluation
     # ------------------------------------------------------------------
     def evaluate_sequence(self, emissions: List[str]) -> List[EmissionMetric]:
         """Batch-evaluate a sequence of emissions.
@@ -164,7 +163,6 @@ class EmissionEvaluator:
                 f"{status}"
             )
 
-        # Summary
         unique_hashes = len({m.hash_signature for m in results})
         bypass_count = sum(1 for m in results if m.cache_bypassed)
         avg_entropy = sum(m.shannon_entropy for m in results) / len(results) if results else 0
@@ -209,9 +207,6 @@ class EmissionEvaluator:
         print(f"[INFO] Emission evaluation report exported: {output_path}")
 
 
-# ----------------------------------------------------------------------
-# Backward-compatibility aliases
-# ----------------------------------------------------------------------
 DynamicEntropyInjector = EmissionEvaluator
 PerturbedPayload = EmissionMetric
 
