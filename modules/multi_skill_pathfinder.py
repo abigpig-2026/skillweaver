@@ -382,9 +382,23 @@ class UDGBuilder:
             # If SkillNode has the actions field (new structure), use it directly
             if hasattr(skill, 'actions') and skill.actions:
                 for action in skill.actions:
-                    # Action nodes already contain independent IO and TF-IDF vectors
-                    subgraph.action_nodes[action.action_id] = action
-                    self.global_action_nodes[action.action_id] = action
+                    # skill_graph_builder.ActionNode uses a skill-local action_id
+                    # ("action_{idx}") and lacks parent_skill_id/parent_skill_name.
+                    # Convert to the pathfinder's ActionNode with a globally unique
+                    # id and skill attribution so downstream cycle resolution works.
+                    global_id = f"{skill_id}_{action.action_id}"
+                    converted = ActionNode(
+                        action_id=global_id,
+                        parent_skill_id=skill_id,
+                        parent_skill_name=skill.name,
+                        command_chain=action.command_chain,
+                        inputs=action.inputs,
+                        outputs=action.outputs,
+                        semantic_vector=action.tfidf_vector,
+                        description=action.description,
+                    )
+                    subgraph.action_nodes[global_id] = converted
+                    self.global_action_nodes[global_id] = converted
             else:
                 # Legacy compatibility: create action nodes from command_chains
                 if skill.command_chains:
